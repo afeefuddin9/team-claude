@@ -1,286 +1,381 @@
 # CLAUDE.md — Team Claude Project Record
-### Lead with Tribe · AI Platform Implementation · Permanent Project Log
 
-> This file is the single source of truth for the Team Claude project.
-> Update it whenever something changes — new features, decisions, deployments.
+> Lead with Tribe · Internal AI Platform · Last updated: June 2026
 
 ---
 
-## 📌 Project Summary
+## Project Status
 
-**Project name:** Team Claude  
-**Purpose:** Shared Claude AI workspace where all 7–12 Lead with Tribe team members can see each other's conversations, continue each other's chats, and work across 7 organised workspaces — without losing context.  
-**Status:** ✅ Code complete · ⏳ Awaiting deployment  
-**Owner:** Mohammed (Lead with Tribe)  
-**Started:** May 2026  
-**Built with help from:** Claude (Anthropic) via claude.ai
+| Phase   | Status         | Description                                        |
+| ------- | -------------- | -------------------------------------------------- |
+| Phase 1 | ✅ COMPLETE    | Core shared workspace — deployed, live, team-ready |
+| Phase 2 | 🔨 IN PLANNING | Auth, private chats, multi-model AI, export/import |
 
 ---
 
-## 🔗 Live Links (fill in after deployment)
+## What is this project?
 
-| What | URL | Status |
-|------|-----|--------|
-| Live app | `https://____________.vercel.app` | ⏳ pending |
-| Custom domain | `https://____________` | ⏳ optional |
-| GitHub repo | `https://github.com/____________` | ✅ pushed |
-| Vercel project | `https://vercel.com/____________` | ⏳ pending |
-| Supabase project | `https://app.supabase.com/project/____________` | ⏳ pending |
-| Anthropic console | `https://console.anthropic.com` | ⏳ pending |
+**Team Claude** is a shared AI workspace built for Lead with Tribe (7–12 members).
+Started as a Claude-only shared chat tool. Growing into a full multi-model AI platform
+with authentication, private conversations, and cross-platform chat import/export.
 
 ---
 
-## 🧱 Tech Stack
+## ✅ Phase 1 — COMPLETED (June 2026)
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Frontend | Next.js 14 + React 18 | App UI and routing |
-| Styling | Custom CSS (globals.css) | Claude.ai-inspired dark/light theme |
-| Backend | Next.js API Routes (serverless) | Proxies Claude API calls securely |
-| Database | Supabase (PostgreSQL) | Stores all conversations + messages + workspaces |
-| Realtime | Supabase Realtime | Live sync across all team members |
-| AI | Anthropic Claude API | Powers all chat responses |
-| Hosting | Vercel | Deploys and serves the app |
-| Auth | None (name-only) | Simple — just enter your name |
+### Delivered
+
+- [x] 7 shared workspaces (Marketing, Dev, Ops, Client, Leadership, General, Events)
+- [x] All conversations visible to the whole team automatically
+- [x] Anyone can open and continue any teammate's conversation
+- [x] Workspaces fully manageable from the UI (add/edit/delete — no code changes)
+- [x] Real-time sync via Supabase Realtime
+- [x] Claude.ai-inspired dark/light interface with streaming responses
+- [x] Each workspace has its own Claude system prompt
+- [x] Mobile responsive layout
+- [x] Deployed to Vercel + Supabase connected
+- [x] GitHub repo → auto-deploy on every push
+
+### Infrastructure
+
+| Service       | Account     | Region              | Plan                |
+| ------------- | ----------- | ------------------- | ------------------- |
+| Vercel        | afeefuddin9 | Global CDN          | Hobby (Free)        |
+| Supabase      | team-claude | ap-south-1 (Mumbai) | Free tier           |
+| GitHub        | afeefuddin9 | —                   | —                   |
+| Anthropic API | —           | —                   | ⏳ Pending purchase |
+
+### Supabase Project Details
+
+- **Project ID:** bzlfsgzdlsmcsxovnsoz
+- **Project URL:** https://bzlfsgzdlsmcsxovnsoz.supabase.co
+- **Region:** South Asia (Mumbai) — ap-south-1
+
+### Current Environment Variables (Vercel)
+
+| Variable                        | Status                                 |
+| ------------------------------- | -------------------------------------- |
+| `ANTHROPIC_API_KEY`             | ⏳ Placeholder — update when purchased |
+| `NEXT_PUBLIC_SUPABASE_URL`      | ✅ Set                                 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Set                                 |
+| `NEXT_PUBLIC_TEAM_NAME`         | ✅ Lead with Tribe                     |
+| `CLAUDE_MODEL`                  | ✅ claude-sonnet-4-5                   |
 
 ---
 
-## 📁 File Structure
+## 🔨 Phase 2 — IN PLANNING (Starting June 2026)
+
+### Scope
+
+1. **Authentication** — @leadwithtribe.com email-only access
+2. **Private conversations** — per-user privacy toggle
+3. **Multi-model AI** — Claude + GPT-4o + Gemini + Meta Llama in one interface
+4. **Export / Import** — export chats, import from other AI platforms, upload CLAUDE.md as knowledge base
+
+### New Environment Variables Needed (Phase 2)
+
+| Variable                    | Purpose                                             |
+| --------------------------- | --------------------------------------------------- |
+| `OPENAI_API_KEY`            | GPT-4o / GPT-4                                      |
+| `GOOGLE_GEMINI_API_KEY`     | Gemini Pro / Flash                                  |
+| `META_LLAMA_API_KEY`        | Llama via Together.ai or Groq                       |
+| `NEXT_PUBLIC_SUPABASE_URL`  | Already set ✅                                      |
+| `SUPABASE_SERVICE_ROLE_KEY` | Needed for auth admin operations (server-side only) |
+
+### Database Changes (Phase 2)
+
+New columns on `conversations`:
+
+- `is_private` (boolean) — hide from other team members
+- `owner_id` (uuid) — links to auth user
+- `ai_model` (text) — which model was used e.g. `claude-sonnet-4-5`
+
+New tables:
+
+- `profiles` — stores name, colour, role per authenticated user
+- `knowledge_base` — uploaded documents per workspace
+
+New Supabase Auth:
+
+- Magic link login restricted to @leadwithtribe.com domain
+- RLS policies updated to respect privacy and ownership
+
+---
+
+## Tech Stack
+
+| Layer        | Technology                       | Purpose                              |
+| ------------ | -------------------------------- | ------------------------------------ |
+| Frontend     | Next.js 14 + React 18            | UI framework                         |
+| Styling      | Custom CSS (Claude.ai-inspired)  | Dark/light theme                     |
+| Backend      | Next.js API Routes               | AI API proxies (all models)          |
+| Database     | Supabase (PostgreSQL)            | Shared storage + realtime + auth     |
+| Auth         | Supabase Auth                    | Email magic link, domain restriction |
+| AI — Phase 1 | Anthropic Claude                 | Chat completions                     |
+| AI — Phase 2 | Claude + OpenAI + Gemini + Llama | Multi-model                          |
+| Hosting      | Vercel                           | Deployment + CDN                     |
+| Source       | GitHub                           | Version control                      |
+
+---
+
+## File Structure (Phase 2 additions)
 
 ```
 team-claude/
 ├── pages/
-│   ├── index.js              ← Main app (entire UI, state, Supabase calls)
-│   ├── _app.js               ← Next.js wrapper, global CSS import
+│   ├── index.js              ← Main app
+│   ├── login.js              ← NEW: Auth screen (magic link)
+│   ├── _app.js
 │   └── api/
-│       └── chat.js           ← Serverless function — Claude API proxy
-│                                (API key never exposed to browser)
+│       ├── chat.js           ← Updated: routes to correct AI model
+│       ├── auth/             ← NEW: auth helpers
+│       └── export.js         ← NEW: conversation export
 ├── lib/
-│   └── supabase.js           ← Supabase client initialisation
-├── styles/
-│   └── globals.css           ← All styles, Claude.ai-inspired design system
-│                                Dark + light mode via CSS variables
+│   ├── supabase.js
+│   ├── models.js             ← NEW: model configs + routing
+│   └── auth.js               ← NEW: auth helpers
+├── middleware.js             ← NEW: protect routes, check auth
 ├── supabase/
-│   └── schema.sql            ← Run once in Supabase SQL Editor
-│                                Creates: workspaces, conversations, messages tables
-├── .env.example              ← Copy to .env.local, fill in keys
-├── next.config.js            ← Next.js config, team name env
-├── package.json              ← Dependencies: next, react, @anthropic-ai/sdk, @supabase/supabase-js
-├── DEPLOYMENT_GUIDE.md       ← Full step-by-step setup guide
-├── CLAUDE.md                 ← This file — permanent project record
-└── README.md                 ← Technical reference
+│   ├── schema.sql            ← Phase 1 (already run ✅)
+│   └── schema-phase2.sql     ← NEW: auth + privacy + profiles
+├── styles/
+│   └── globals.css
+├── CLAUDE.md                 ← This file
+└── README.md
 ```
 
 ---
 
-## 🔑 Environment Variables
+## Useful Links
 
-Add these to Vercel → Settings → Environment Variables:
-
-| Variable | Example Value | Required | Notes |
-|----------|--------------|----------|-------|
-| `ANTHROPIC_API_KEY` | `sk-ant-api03-...` | ✅ Yes | Get from console.anthropic.com — use `sk-placeholder` until purchased |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | ✅ Yes | From Supabase → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` | ✅ Yes | From Supabase → Settings → API |
-| `NEXT_PUBLIC_TEAM_NAME` | `Lead with Tribe` | ✅ Yes | Displays in the UI |
-| `CLAUDE_MODEL` | `claude-sonnet-4-5` | ✅ Yes | See model options below |
-
-### Claude model options
-| Model ID | Speed | Quality | Estimated monthly cost (team of 10) |
-|----------|-------|---------|--------------------------------------|
-| `claude-haiku-4-5` | Fastest | Good | ~$1–3 |
-| `claude-sonnet-4-5` | Fast | Great ⭐ recommended | ~$5–15 |
-| `claude-opus-4-5` | Slower | Best | ~$20–60 |
+| Resource            | URL                                                 |
+| ------------------- | --------------------------------------------------- |
+| Live app            | _(add Vercel URL)_                                  |
+| GitHub repo         | github.com/afeefuddin9/team-claude                  |
+| Vercel dashboard    | vercel.com/afeefuddin9/team-claude                  |
+| Supabase dashboard  | supabase.com/dashboard/project/bzlfsgzdlsmcsxovnsoz |
+| Anthropic console   | console.anthropic.com                               |
+| OpenAI console      | platform.openai.com                                 |
+| Google AI Studio    | aistudio.google.com                                 |
+| Together.ai (Llama) | api.together.xyz                                    |
 
 ---
 
-## 🗂️ Workspaces
+## Change Log
 
-All 7 workspaces are seeded automatically when you run `schema.sql`. They can also be added/edited/deleted from the app UI — no code changes needed.
-
-| ID | Label | Colour | Claude System Prompt |
-|----|-------|--------|---------------------|
-| `marketing` | Marketing & Content | #CF5C7E | Expert marketing strategist |
-| `dev` | Development / Tech | #4A9EE0 | Senior software engineer |
-| `ops` | Operations | #2BAE8E | Operations and process expert |
-| `client` | Client Work | #E0943A | Professional account manager |
-| `leadership` | Leadership | #9B8AE0 | Strategic business advisor |
-| `general` | General / Experiments | #8A8680 | General helpful assistant |
-| `events` | Upcoming Events | #E07050 | Expert event planner |
-
-### Adding new workspaces (no code needed)
-1. Open the app
-2. Click **+** next to "Workspaces" in the sidebar
-3. Enter name, pick colour, optionally add Claude instructions
-4. Click **Add workspace** — live for everyone instantly
+| Date     | Phase   | Change                                                |
+| -------- | ------- | ----------------------------------------------------- |
+| Jun 2026 | Phase 1 | v1 — Initial build, 7 workspaces                      |
+| Jun 2026 | Phase 1 | v2 — Dynamic workspaces from UI, placeholder API key  |
+| Jun 2026 | Phase 1 | ✅ Deployed to Vercel — live and running              |
+| Jun 2026 | Phase 2 | Planning started — Auth, multi-model, privacy, export |
 
 ---
 
-## 🗄️ Database Schema
-
-### `workspaces` table
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | text (PK) | Slug, e.g. `marketing` |
-| `label` | text | Display name |
-| `color` | text | Hex colour |
-| `prompt` | text | System prompt for Claude |
-| `sort_order` | integer | Sidebar order |
-| `created_at` | timestamptz | When created |
-
-### `conversations` table
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid (PK) | Auto-generated |
-| `title` | text | Auto-set from first message |
-| `workspace` | text | FK to workspaces.id |
-| `author_name` | text | Who started it |
-| `author_color` | text | Their avatar colour |
-| `preview` | text | Last response snippet |
-| `message_count` | integer | Total messages |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | Auto-updates on change |
-
-### `messages` table
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid (PK) | Auto-generated |
-| `conversation_id` | uuid (FK) | Links to conversations |
-| `role` | text | `user` or `assistant` |
-| `content` | text | Full message text |
-| `author_name` | text | For user messages |
-| `author_color` | text | For user messages |
-| `created_at` | timestamptz | |
+_Single source of truth for Team Claude at Lead with Tribe.
+Built with Claude AI (claude.ai). Continue this project by sharing this CLAUDE.md
+with Claude in a new conversation to resume from exactly this point._
 
 ---
 
-## 🚀 Deployment Checklist
+## Phase 2 — IN PLANNING
 
-### Phase 1 — Deploy without API key (test first)
-- [ ] Code pushed to GitHub repo
-- [ ] Supabase account created at supabase.com
-- [ ] New Supabase project created (`team-claude`)
-- [ ] `supabase/schema.sql` run in Supabase SQL Editor
-- [ ] Supabase Project URL copied
-- [ ] Supabase anon key copied
-- [ ] Vercel account created at vercel.com (sign in with GitHub)
-- [ ] GitHub repo imported into Vercel
-- [ ] All 5 environment variables added (with `sk-placeholder` for API key)
-- [ ] Vercel deployment successful ✅
-- [ ] App opens at Vercel URL
-- [ ] Can join workspace, see all workspaces
-- [ ] Team URL shared with all members
-- [ ] Sending a message shows "API key not configured" (expected ✅)
+> Started: June 2026 · Status: Architecture & planning phase
 
-### Phase 2 — Activate Claude (after purchasing)
-- [ ] Anthropic account created at console.anthropic.com
-- [ ] Credit card added to Anthropic billing
-- [ ] $10 initial credit added
-- [ ] API key generated (`sk-ant-api03-...`)
-- [ ] `ANTHROPIC_API_KEY` updated in Vercel env vars
-- [ ] Vercel redeployment triggered
-- [ ] Test message gets real Claude response ✅
-- [ ] All team members notified
+### Phase 2 Features Confirmed
 
-### Phase 3 — Polish (optional)
-- [ ] Custom domain set up (e.g. `ai.leadwithtribe.com`)
-- [ ] Team walkthrough session held
-- [ ] Bookmark/pin shared in Slack or Notion
+| #   | Feature                                                      | Status   |
+| --- | ------------------------------------------------------------ | -------- |
+| 1   | Authentication — @leadwithtribe.com email only               | Planning |
+| 2   | Private conversations                                        | Planning |
+| 3   | Multi-AI model support (Claude, Gemini, ChatGPT, Meta/Llama) | Planning |
+| 4   | File upload (CLAUDE.md context) + conversation export/import | Planning |
 
----
+### Phase 2 New Environment Variables (to be added)
 
-## 💬 Project Conversation History
+| Variable               | Purpose                 | Where to get             |
+| ---------------------- | ----------------------- | ------------------------ |
+| `OPENAI_API_KEY`       | ChatGPT / GPT-4o        | platform.openai.com      |
+| `GEMINI_API_KEY`       | Google Gemini           | aistudio.google.com      |
+| `META_API_KEY`         | Meta Llama models       | groq.com or together.ai  |
+| `NEXTAUTH_SECRET`      | Auth session encryption | auto-generated           |
+| `NEXTAUTH_URL`         | Your Vercel URL         | your Vercel app URL      |
+| `GOOGLE_CLIENT_ID`     | Google OAuth login      | console.cloud.google.com |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth login      | console.cloud.google.com |
 
-A log of key decisions made during this project.
+### Phase 2 Database Changes (new columns + tables)
 
----
+**conversations table — new columns:**
 
-### Session 1 — Initial discussion (May 2026)
+- `model` (text) — which AI model was used e.g. `claude-sonnet-4-5`
+- `model_provider` (text) — `anthropic` / `openai` / `google` / `meta`
+- `is_private` (boolean) — only visible to creator
+- `user_id` (uuid) — linked to auth user
 
-**Problem identified:**
-- Lead with Tribe team of 7–12 all use Claude independently
-- No visibility into other team members' conversations
-- Context gets lost between team members
-- If someone builds something useful in Claude, others can't see or continue it
+**New table: `profiles`**
 
-**Options evaluated:**
-1. Claude Teams Plan (native) — chats private by default, manual sharing only
-2. Deployable web app (custom) — full auto-sharing, chosen ✅
-3. Downloadable HTML file — no real shared storage
+- `id` (uuid) — matches Supabase auth user ID
+- `name`, `email`, `avatar_url`, `color`
+- `created_at`
 
-**Decision:** Build a custom Next.js app using Anthropic API + Supabase for shared persistent storage.
+**New table: `conversation_files`**
 
----
+- `id` (uuid), `conversation_id` (FK), `file_name`, `file_content`, `file_type`, `uploaded_by`
 
-### Session 2 — UI and workspace design
+### Phase 2 Architecture Decisions
 
-**Decisions made:**
-- Interface modelled closely on Claude.ai (dark/light mode, same message layout)
-- 7 workspaces matching team structure from internal PDF guide:
-  Marketing, Development, Operations, Client Work, Leadership, General, Events
-- Each workspace has its own Claude system prompt so responses are contextually appropriate
-- "Continuing" badge shown when a team member picks up someone else's chat
-- No login system — just name entry (sufficient for internal team tool)
+- **Auth:** Supabase Auth + Google OAuth restricted to @leadwithtribe.com domain
+- **Multi-model routing:** Single `/api/chat` route with provider switch (no extra routes)
+- **Meta AI:** Via Groq API (fastest, free tier, supports Llama 3.3)
+- **File context:** Uploaded markdown/text injected as system context for that conversation
+- **Export:** Client-side PDF/Markdown generation (no extra backend needed)
+
+### Open Questions (answered before dev starts)
+
+- [ ] Does your team use Google Workspace for @leadwithtribe.com emails? (determines OAuth setup)
+- [ ] Model selector: per conversation (set at start) or switchable mid-chat?
+- [ ] Do you have a Groq account for Meta/Llama, or prefer Together AI?
 
 ---
 
-### Session 3 — Bug fixes and v2
+---
 
-**Issues fixed:**
-- Join button not working → fixed by setting React state immediately, storage as best-effort async
-- Claude API "Failed to fetch" in chat widget → root cause: Claude.ai sandboxes artifact iframes; solution is proper deployment outside sandbox
-- Workspace picker → moved workspaces to Supabase database, editable from UI
+## Phase 2 — IN PLANNING
 
-**Features added in v2:**
-- Dynamic workspaces stored in Supabase (not hardcoded)
-- Add/Edit/Delete workspaces from sidebar UI with name, colour, custom Claude instructions
-- Workspace-specific system prompts passed to Claude API
-- Placeholder API key support so app can be tested before purchasing
+> Started: June 2026 | Status: Architecture & planning phase
+
+### Phase 2 Scope
+
+| #   | Feature                                     | Complexity | Depends On                   |
+| --- | ------------------------------------------- | ---------- | ---------------------------- |
+| 2.1 | Authentication (@leadwithtribe.com)         | High       | Supabase Auth + Google OAuth |
+| 2.2 | Private conversations                       | Medium     | Auth (needs user identity)   |
+| 2.3 | Multi-model AI (Claude, Gemini, GPT, Llama) | High       | New API keys                 |
+| 2.4 | Import / Export conversations               | Medium     | Auth + DB schema update      |
+
+### New Environment Variables Needed (Phase 2)
+
+| Variable            | Purpose                 | Where to get                        |
+| ------------------- | ----------------------- | ----------------------------------- |
+| `GEMINI_API_KEY`    | Google Gemini models    | aistudio.google.com                 |
+| `OPENAI_API_KEY`    | GPT-4o, GPT-4o-mini     | platform.openai.com                 |
+| `GROQ_API_KEY`      | Meta Llama (free, fast) | console.groq.com                    |
+| `NEXTAUTH_SECRET`   | Auth token signing      | Generate: `openssl rand -base64 32` |
+| `NEXTAUTH_URL`      | Auth callback URL       | Your Vercel URL                     |
+| `TEAM_EMAIL_DOMAIN` | Restrict login to org   | `leadwithtribe.com`                 |
+
+### DB Schema Changes (Phase 2)
+
+**New: `users` table** (managed by Supabase Auth)
+
+- id, email, name, avatar_url, created_at
+
+**Updated: `conversations` table**
+
+- Add: `owner_id` (FK → users.id)
+- Add: `is_private` (boolean, default false)
+- Add: `model_used` (e.g. claude-sonnet-4-5)
+- Add: `provider` (claude / gemini / openai / groq)
+
+**Updated: `messages` table**
+
+- Add: `model_used` (which model generated this response)
+- Add: `provider` (which provider)
+
+### Architecture Changes (Phase 2)
+
+Current: Single `/api/chat.js` → Anthropic only
+Phase 2: Unified `/api/chat.js` with provider routing
+
+```
+/api/chat
+  ├── provider=claude  → Anthropic SDK (streaming)
+  ├── provider=gemini  → Google GenAI SDK (streaming)
+  ├── provider=openai  → OpenAI SDK (streaming)
+  └── provider=groq    → Groq SDK → Llama models (streaming)
+```
 
 ---
 
-### Session 4 — Deployment guide (current)
-
-**Deliverables:**
-- `DEPLOYMENT_GUIDE.md` — full step-by-step guide for Supabase + Vercel setup
-- `CLAUDE.md` — this file, permanent project record
-- `team-claude-v2.zip` — final deployable code
-
-**Outstanding:**
-- User to create Supabase + Vercel accounts and deploy
-- API key to be purchased after confirming deployment works
+_Phase 2 development to begin after team testing of Phase 1 is complete_
 
 ---
 
-## 🔮 Potential Future Features
+## Phase 2 — IN PROGRESS
 
-Ideas discussed or suggested for future development:
+> Started: June 2026 | v3 codebase
 
-| Feature | Priority | Notes |
-|---------|----------|-------|
-| Custom domain | Medium | e.g. `ai.leadwithtribe.com` |
-| Conversation tagging | Low | Tag chats with topics/projects |
-| @mention team members | Low | Notify teammates about a chat |
-| Export chat to PDF/Doc | Medium | Share outside the app |
-| Admin panel | Low | Manage members, see usage stats |
-| Per-workspace knowledge base | High | Upload docs Claude references in that workspace |
-| Conversation reactions/bookmarks | Low | Star useful chats |
-| Usage dashboard | Medium | Track team API spend by workspace |
-| Mobile app (PWA) | Low | Add to home screen on phone |
+### Phase 2 Features Built
 
----
+| Feature                                | Status      | Notes                                              |
+| -------------------------------------- | ----------- | -------------------------------------------------- |
+| Google OAuth auth (@leadwithtribe.com) | ✅ Built    | Requires Supabase + Google Cloud setup (see below) |
+| Private conversations                  | ✅ Built    | Toggle in chat header — owner only                 |
+| Multi-model AI (Claude/Gemini/Groq)    | ✅ Built    | Model picker with lock/unlock in input area        |
+| Import/Export                          | ⏳ Phase 2B | Planned next                                       |
 
-## 📞 Support & Contacts
+### New Files in v3
 
-| Resource | Link |
-|----------|------|
-| Anthropic API docs | https://docs.anthropic.com |
-| Anthropic support | https://support.anthropic.com |
-| Supabase docs | https://supabase.com/docs |
-| Vercel docs | https://vercel.com/docs |
-| Next.js docs | https://nextjs.org/docs |
-| Deployment guide | `DEPLOYMENT_GUIDE.md` in this repo |
+| File                          | Purpose                                                 |
+| ----------------------------- | ------------------------------------------------------- |
+| `pages/auth/callback.js`      | Handles Google OAuth redirect, domain check             |
+| Updated `pages/index.js`      | Auth screen, model picker, private toggle, lock feature |
+| Updated `pages/api/chat.js`   | Routes to Claude / Gemini / Groq                        |
+| Updated `lib/supabase.js`     | PKCE auth flow                                          |
+| Updated `supabase/schema.sql` | New columns + RLS policies                              |
 
----
+### New Env Vars (add to Vercel)
 
-*Last updated: May 2026 · Team Claude v2 · Lead with Tribe*
+| Variable                        | Value                                                   |
+| ------------------------------- | ------------------------------------------------------- |
+| `GEMINI_API_KEY`                | From aistudio.google.com (REGENERATE — old key exposed) |
+| `GROQ_API_KEY`                  | From console.groq.com (REGENERATE — old key exposed)    |
+| `NEXT_PUBLIC_TEAM_EMAIL_DOMAIN` | `leadwithtribe.com`                                     |
+
+### ⚠ Security Note
+
+API keys were shared in a chat conversation. Both must be regenerated:
+
+- Gemini: aistudio.google.com → API Keys → delete old → create new
+- Groq: console.groq.com → API Keys → delete old → create new
+
+### Supabase Auth Setup Required (manual steps)
+
+Before v3 auth works, complete these steps in the Supabase and Google Cloud dashboards:
+
+**Step 1 — Google Cloud Console**
+
+1. console.cloud.google.com → New project (or use existing)
+2. APIs & Services → OAuth consent screen → External → fill details
+3. APIs & Services → Credentials → Create OAuth 2.0 Client ID
+4. Application type: Web application
+5. Authorised redirect URI: `https://bzlfsgzdlsmcsxovnsoz.supabase.co/auth/v1/callback`
+6. Copy Client ID and Client Secret
+
+**Step 2 — Supabase Auth**
+
+1. Supabase dashboard → Authentication → Providers → Google → Enable
+2. Paste Client ID and Client Secret
+3. Save
+
+**Step 3 — Supabase Site URL**
+
+1. Supabase → Authentication → URL Configuration
+2. Site URL: your Vercel URL (e.g. https://team-claude-xyz.vercel.app)
+3. Redirect URLs: add `https://team-claude-xyz.vercel.app/auth/callback`
+
+**Step 4 — Run schema migration**
+Run the ALTER TABLE section of `supabase/schema.sql` in SQL Editor to add new columns to existing tables.
+
+### AI Models Available in v3
+
+| Model            | Provider  | Badge     | Cost             |
+| ---------------- | --------- | --------- | ---------------- |
+| Claude Haiku     | Anthropic | Fastest   | API billing      |
+| Claude Sonnet    | Anthropic | Balanced  | API billing      |
+| Claude Opus      | Anthropic | Powerful  | API billing      |
+| Gemini 2.0 Flash | Google    | Fast      | Free tier        |
+| Gemini 1.5 Flash | Google    | Free      | Free tier        |
+| Gemini 1.5 Pro   | Google    | Capable   | Billing required |
+| Llama 3.3 70B    | Groq      | Free      | Free tier        |
+| Llama 3.1 8B     | Groq      | Free·Fast | Free tier        |
