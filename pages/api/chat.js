@@ -48,7 +48,7 @@ async function handleGemini(res, messages, model, system) {
     return;
   }
 
-  const modelId = model || 'gemini-1.5-flash-8b';
+  const modelId  = model || 'gemini-1.5-flash';
 
   // Convert messages → Gemini format (role must be 'user' | 'model')
   const rawContents = messages
