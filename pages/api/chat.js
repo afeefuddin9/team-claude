@@ -6,7 +6,6 @@ export const config = { api: { responseLimit: false } };
 
 const DEFAULT_PROMPT = 'You are a helpful AI assistant for a professional team. Be clear, concise, and actionable.';
 
-// ── SSE helpers ──────────────────────────────────────────
 function startStream(res) {
   res.writeHead(200, {
     'Content-Type':      'text/event-stream',
@@ -25,7 +24,7 @@ async function handleClaude(res, messages, model, system) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey || apiKey === 'sk-placeholder') {
     send(res, { error: 'Anthropic API key not configured. Add ANTHROPIC_API_KEY in Vercel env vars.' });
-    return res.end();
+    return;
   }
   const client = new Anthropic({ apiKey });
   const stream = client.messages.stream({
@@ -42,81 +41,122 @@ async function handleClaude(res, messages, model, system) {
 }
 
 // ── Gemini ───────────────────────────────────────────────
-// FIX: Use apiVersion 'v1' (not v1beta) to resolve 404 errors
 async function handleGemini(res, messages, model, system) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    send(res, { error: 'GEMINI_API_KEY not configured in Vercel env vars.' });
-    return res.end();
+    send(res, { error: 'Gemini: GEMINI_API_KEY not set in Vercel environment variables.' });
+    return;
   }
 
-  const genAI    = new GoogleGenerativeAI(apiKey);
-  const modelId  = model || 'gemini-1.5-flash-8b';
+  const modelId = model || 'gemini-1.5-flash-8b';
 
-  // apiVersion: 'v1' fixes the 404 "not found for API version v1beta" error
-  const geminiModel = genAI.getGenerativeModel(
-    { model: modelId, systemInstruction: system },
-    { apiVersion: 'v1' }
-  );
-
-  // Convert to Gemini format (uses 'model' not 'assistant')
-  const contents = messages
+  // Convert messages → Gemini format (role must be 'user' | 'model')
+  const rawContents = messages
     .filter(m => m.content?.trim())
     .map(m => ({
       role:  m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
+      parts: [{ text: m.content.trim() }],
     }));
 
-  // Gemini requires content to start with a user turn
-  while (contents.length > 0 && contents[0].role !== 'user') {
-    contents.shift();
+  // Remove leading non-user turns (Gemini requires starting with 'user')
+  while (rawContents.length > 0 && rawContents[0].role !== 'user') {
+    rawContents.shift();
+  }
+
+  // Merge consecutive same-role turns (Gemini rejects them)
+  const contents = [];
+  for (const item of rawContents) {
+    const last = contents[contents.length - 1];
+    if (last && last.role === item.role) {
+      last.parts.push(...item.parts); // merge into previous turn
+    } else {
+      contents.push({ role: item.role, parts: [...item.parts] });
+    }
   }
 
   if (contents.length === 0) {
-    send(res, { error: 'No valid messages to send to Gemini.' });
-    return res.end();
+    send(res, { error: 'Gemini: no valid messages to process.' });
+    return;
   }
 
-  // Use generateContentStream with full contents array (more reliable than startChat)
-  const result = await geminiModel.generateContentStream({ contents });
+  const genAI = new GoogleGenerativeAI(apiKey);
 
-  for await (const chunk of result.stream) {
-    const text = chunk.text();
-    if (text) send(res, { text });
+  // apiVersion 'v1' fixes the "not found for API version v1beta" 404 error
+  const geminiModel = genAI.getGenerativeModel(
+    { model: modelId },          // No systemInstruction here — pass it in contents instead
+    { apiVersion: 'v1' }
+  );
+
+  // Prepend system prompt as first user turn if provided
+  // (more reliable than systemInstruction property across model versions)
+  const finalContents = system && system !== DEFAULT_PROMPT
+    ? [
+        { role: 'user',  parts: [{ text: `[System instructions]: ${system}` }] },
+        { role: 'model', parts: [{ text: 'Understood. I will follow those instructions.' }] },
+        ...contents,
+      ]
+    : contents;
+
+  let hasReceivedText = false;
+
+  const streamResult = await geminiModel.generateContentStream({
+    contents: finalContents,
+    generationConfig: {
+      maxOutputTokens: 4096,
+      temperature: 0.7,
+    },
+  });
+
+  for await (const chunk of streamResult.stream) {
+    try {
+      const text = chunk.text();
+      if (text) {
+        hasReceivedText = true;
+        send(res, { text });
+      }
+    } catch (chunkErr) {
+      // Some chunks are safety/metadata blocks — skip them silently
+      console.warn('[Gemini chunk skipped]', chunkErr.message);
+    }
+  }
+
+  // If stream finished with no text, check why and return a clear error
+  if (!hasReceivedText) {
+    let reason = 'Gemini returned an empty response.';
+    try {
+      const finalResp = await streamResult.response;
+      const blockReason   = finalResp.promptFeedback?.blockReason;
+      const finishReason  = finalResp.candidates?.[0]?.finishReason;
+      if (blockReason)  reason = `Gemini blocked the request: ${blockReason}`;
+      else if (finishReason && finishReason !== 'STOP') reason = `Gemini stopped early: ${finishReason}`;
+    } catch (_) { /* ignore */ }
+    send(res, { error: reason });
   }
 }
 
 // ── Groq (Llama) ─────────────────────────────────────────
-// FIX: Trim history to last 10 msgs + reduce max_tokens to stay under 6000 TPM free limit
 async function handleGroq(res, messages, model, system) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    send(res, { error: 'GROQ_API_KEY not configured in Vercel env vars.' });
-    return res.end();
+    send(res, { error: 'Groq: GROQ_API_KEY not set in Vercel environment variables.' });
+    return;
   }
 
-  const modelId = model || 'llama-3.3-70b-versatile';
-
-  // Different token limits per model on Groq free tier:
-  // llama-3.1-8b-instant  → 6,000 TPM  → cap at 2048 output + trim history
-  // llama-3.3-70b         → 6,000 TPM  → cap at 4096 output
+  const modelId   = model || 'llama-3.3-70b-versatile';
   const is8B      = modelId.includes('8b');
   const maxTokens = is8B ? 2048 : 4096;
 
-  // Trim history to last 10 messages to reduce input token count
-  // Always keep the last message (current user query) + up to 9 previous
-  const recentMessages = messages.length > 10
-    ? [...messages.slice(0, 1), ...messages.slice(-9)]  // keep first (context) + last 9
+  // Trim history to last 10 messages to stay under free-tier 6000 TPM limit
+  const trimmed = messages.length > 10
+    ? [...messages.slice(0, 1), ...messages.slice(-9)]
     : messages;
 
   const groq   = new Groq({ apiKey });
   const stream = await groq.chat.completions.create({
-    model:      modelId,
-    max_tokens: maxTokens,
-    stream:     true,
+    model: modelId, max_tokens: maxTokens, stream: true,
     messages: [
       { role: 'system', content: system },
-      ...recentMessages.map(m => ({ role: m.role, content: m.content })),
+      ...trimmed.map(m => ({ role: m.role, content: m.content })),
     ],
   });
 
@@ -126,7 +166,7 @@ async function handleGroq(res, messages, model, system) {
   }
 }
 
-// ── Main handler ─────────────────────────────────────────
+// ── Main ─────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -138,16 +178,17 @@ export default async function handler(req, res) {
 
   try {
     switch (provider) {
-      case 'claude':  await handleClaude(res, messages, model, system); break;
-      case 'gemini':  await handleGemini(res, messages, model, system); break;
-      case 'groq':    await handleGroq(res, messages, model, system);   break;
-      default:
-        send(res, { error: `Unknown provider: ${provider}` });
+      case 'claude': await handleClaude(res, messages, model, system); break;
+      case 'gemini': await handleGemini(res, messages, model, system); break;
+      case 'groq':   await handleGroq(res, messages, model, system);   break;
+      default:       send(res, { error: `Unknown provider: ${provider}` });
     }
     send(res, { done: true });
   } catch (err) {
-    console.error(`[${provider} error]`, err.message);
-    send(res, { error: err.message || 'API error' });
+    console.error(`[${provider} error]`, err);
+    // Surface the full error — not just message — so blank errors are caught
+    const msg = err?.message || err?.toString?.() || JSON.stringify(err) || 'Unknown error';
+    send(res, { error: `${provider}: ${msg}` });
   } finally {
     res.end();
   }
