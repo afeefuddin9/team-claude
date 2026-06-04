@@ -10,9 +10,9 @@ const MODELS = [
   { id:'claude-haiku-4-5',        provider:'claude',  name:'Claude Haiku',       badge:'Fastest',    color:'#D97757' },
   { id:'claude-sonnet-4-5',       provider:'claude',  name:'Claude Sonnet',      badge:'Balanced',   color:'#D97757' },
   { id:'claude-opus-4-5',         provider:'claude',  name:'Claude Opus',        badge:'Powerful',   color:'#D97757' },
-  { id:'gemini-2.0-flash',        provider:'gemini',  name:'Gemini 2.0 Flash',   badge:'Fast',       color:'#4285F4' },
-  { id:'gemini-1.5-flash',        provider:'gemini',  name:'Gemini 1.5 Flash',   badge:'Free',       color:'#4285F4' },
-  { id:'gemini-1.5-pro',          provider:'gemini',  name:'Gemini 1.5 Pro',     badge:'Capable',    color:'#4285F4' },
+  { id:'gemini-2.0-flash',        provider:'gemini',  name:'Gemini 2.0 Flash',    badge:'Fast',       color:'#4285F4' },
+  { id:'gemini-1.5-flash-8b',    provider:'gemini',  name:'Gemini 1.5 Flash 8B', badge:'Free',       color:'#4285F4' },
+  { id:'gemini-1.5-pro',           provider:'gemini',  name:'Gemini 1.5 Pro',      badge:'Capable',    color:'#4285F4' },
   { id:'llama-3.3-70b-versatile', provider:'groq',    name:'Llama 3.3 70B',      badge:'Free',       color:'#0467DF' },
   { id:'llama-3.1-8b-instant',    provider:'groq',    name:'Llama 3.1 8B',       badge:'Free·Fast',  color:'#0467DF' },
 ];
